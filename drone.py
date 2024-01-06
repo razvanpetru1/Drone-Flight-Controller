@@ -1,6 +1,6 @@
 import numpy as np
 from typing import Tuple
-import gymnasium as gym
+
 from gym import spaces
 
 

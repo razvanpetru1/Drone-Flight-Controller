@@ -25,8 +25,8 @@ class CustomController(FlightController):
     
     def reset(self):
         # Reset variables
-        self.x = randrange(480, 720)
-        self.y = randrange(480, 720)
+        self.x = 0 # randrange(480, 720)
+        self.y = 0 # randrange(480, 720)
         self.pitch = 0
         
         self.velocity_y = 0
@@ -69,11 +69,10 @@ class CustomController(FlightController):
         distance_y = self.y - target_point[1]
         distance_to_target = np.sqrt(distance_x*distance_x+distance_y*distance_y)
         
-        angle_to_target = np.arctan2(self.x - self.target_point[0], self.y - self.target_point[1])
+        angle_to_target = np.arctan2( self.target_point[1] - self.y , self.target_point[0] - self.x ) # opposide side /adjacent side
         
         # Angle between the to_target vector and the velocity vector
-        angle_target_and_velocity = np.arctan2(
-            self.x - self.target_point[0], self.y - self.self.target_point[0] ) - np.arctan2(self.velocity_x, self.velocity_y)
+        angle_target_and_velocity = angle_to_target - np.arctan2(self.velocity_y, self.velocity_x)
     
         
         return np.array(
