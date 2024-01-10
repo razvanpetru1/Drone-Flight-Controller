@@ -2,6 +2,7 @@ import numpy as np
 from typing import Tuple
 import gymnasium as gym
 from gym import spaces
+from math import sin,cos, pi, sqrt
 
 
 class Drone():
@@ -23,7 +24,9 @@ class Drone():
 
         # Command for the motors if thrust_left & _right is 0.5 the drone is standing still.
         self.thrust_left = 0.5
-        self.thrust_right = 0.5               
+        self.thrust_right = 0.5 
+        self.thruster_amplitude = 0.04
+        self.diff_amplitude = 0.0006              
         # The target x,y coordinates the drone is trying to reach
         self.target_coordinates = []           
 
@@ -42,7 +45,7 @@ class Drone():
         self.has_reached_target_last_update = False
         self.target_counter = 0         # we want to collect the number of targets collected. 
 
-        # 5 actions: Nothing, Up, Down, Right, Left
+        # 5 actions: Nothing, Up, Down, Right, Left .New
         self.action_space = gym.spaces.Discrete(5)
         print("\n",type(self.action_space.dtype))
 
@@ -57,8 +60,12 @@ class Drone():
         self.target_coordinates.append(point)
 
     
+    def get_pitch_rad(self):
+        return  self.pitch / 180 * pi  
+    
     def get_pitch(self):
         return self.pitch
+
 
     def set_thrust(self, thrust_percentage: Tuple[float, float]):
         assert(len(thrust_percentage) == 2)
