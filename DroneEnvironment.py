@@ -44,7 +44,7 @@ class DroneEnvironment():
         self.drone.x = 0                # new x possition
         self.drone.y = 0                # new y possition
         self.drone.pitch = 0            # new  theta angle
-
+        self.drone.target_coordinates.pop(0)
         self.drone.target_coordinates = self.drone.get_next_target()
         
         self.drone.reward = 0
@@ -128,14 +128,18 @@ class DroneEnvironment():
 
                 
             self.drone.reward, done = self.calculate_reward()
-        info = {}
+        
+        
+        info = ((self.drone.t), (self.drone.x, self.drone.y), self.drone.pitch, self.drone.target_coordinates[0])
 
+        
         return (
             self.get_state(), # current state 
             self.drone.reward,    # reward
             done,
             info,
-            self.drone.t
+            
+            
             #(thruster_left,thruster_right)   
         )
 
@@ -159,7 +163,7 @@ class DroneEnvironment():
             done = True
             
         # If the drone exceeds a certain distance from the target, it results in a crash - reward a big penalty
-        elif distance_to_target > 8:
+        elif distance_to_target > 1:    
             self.drone.reward -= 1000
             done = True
             
@@ -169,18 +173,18 @@ class DroneEnvironment():
 
     def calculate_distance_to_target(self):
          # Updates the target list
-        target_point = self.drone.target_coordinates 
+        target_point_x, target_point_y = self.drone.target_coordinates[0] 
         # Calculate the Euclidean distance to the target
-        distance_x = self.drone.x - target_point[0]
-        distance_y = self.drone.y - target_point[1]
+        distance_x = self.drone.x - target_point_x
+        distance_y = self.drone.y - target_point_y
         distance_to_target = np.sqrt(distance_x*distance_x + distance_y*distance_y)
 
         return distance_to_target
 
     def calculate_angle_to_target(self):
         # Calculate the angle between the drone's current orientation and the direction to the target
-        target_point = self.drone.target_coordinates
-        angle_to_target = np.arctan2(target_point[1] - self.drone.y, target_point[0] - self.drone.x)
+        target_point_x, target_point_y = self.drone.target_coordinates[0] 
+        angle_to_target = np.arctan2(target_point_x - self.drone.y, target_point_y - self.drone.x)
         return angle_to_target - self.drone.pitch
     
     def calculate_angle_target_and_velocity(self):

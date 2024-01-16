@@ -42,8 +42,10 @@ def generate_dataset(num_samples=100000, input_size=5, random_seed=True):
 
 class DQNController:
     def __init__(self):
-        self.current_DronePoss = None
-        self.current_targetPoss = None
+        self.current_DronePoss_x = None
+        self.current_DronePoss_y = None
+        self.current_targetPoss_x = None
+        self.current_targetPoss_y = None
         self.drone_pitch = None
 
     def play_DQN(self, callback=None):
@@ -64,7 +66,7 @@ class DQNController:
         replay_memory = ReplayMemory(memlen=100)
 
         initial_epsilon = 0.1
-        epsilon_min = 0.001
+        epsilon_min = 0.01
         epsilon_decay = 0.995
 
         gamma = 0.95
@@ -88,11 +90,12 @@ class DQNController:
                     action = np.argmax(q_values)
 
                 steps = steps + 1
-                next_state, reward, done, _, time = custom_env.step(action)
-                self.drone_pitch = custom_env.drone.get_pitch()
-                self.current_DronePoss = custom_env.get_current_possition_drone()
+                next_state, reward, done, info = custom_env.step(action)
+                time, (self.current_DronePoss_x, self.current_DronePoss_y), self.drone_pitch, (self.current_targetPoss_x, self.current_targetPoss_y) = info
                 
-                self.current_targetPoss = custom_env.get_target_coordonates()
+                 # Call the callback function on each iteration
+                if callback:
+                    callback((self.current_DronePoss_x, self.current_DronePoss_y), self.drone_pitch, (self.current_targetPoss_x, self.current_targetPoss_y))
                 #print("Current position of the drone: ",self.current_DronePoss, "target: ",self.current_targetPoss)
 
                 total_reward += reward
@@ -125,9 +128,7 @@ class DQNController:
 
                 state = next_state
 
-                # Call the callback function on each iteration
-                if callback:
-                    callback(self.current_DronePoss, self.current_targetPoss, self.drone_pitch)
+               
 
             epsilon = max(epsilon * epsilon_decay, epsilon_min)
            # print("END episode   Coordonates drone:", int(custom_env.drone.x), int(custom_env.drone.y), "Coordonates target:", custom_env.drone.target_coordinates[0], custom_env.drone.target_coordinates[1])

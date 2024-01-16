@@ -17,42 +17,42 @@ class Drone():
         self.velocity_y = 0
         self.velocity_x = 0
         self.pitch_velocity = 0
-
+        
         self.acceleration_x = 0
         self.acceleration_y = 0
         self.pitch_acceleration = 0
-
+        
         # Command for the motors if thrust_left & _right is 0.5 the drone is standing still.
         self.thrust_left = 0.5
         self.thrust_right = 0.5 
         
-        self.thruster_amplitude = 0.001
-        self.diff_amplitude = 0.00006              
+        self.thruster_amplitude = 0.0001
+        self.diff_amplitude = 0.000006              
         # The target x,y coordinates the drone is trying to reach
-        self.target_coordinates = []           
-
-       # self.target_coordinates = np.random.randint(480, 721, size=(2,))
+          
+        
+        # self.target_coordinates = np.random.randint(480, 721, size=(2,))
         
         # Physics constants
         self.velocity_drag = 1.0
         self.pitch_drag_constant = 0.3
+        self.target_coordinates = [] 
         self.max_thrust = 1.0
         self.turning_constant = 1.0
         self.mass = 1.0
         self.g = -1.0/self.mass         # gravity
-        self.game_target_size = 0.1     # size of the target on the map
+	        
         self.length_arm_drone = 1      # we try length of 1
               
         self.t = 0                      # the time of the simulation (reseted at the start of every new episod)
         self.FPS = 60                   # frames per second
-
+        self.game_target_size = 0.1     # size of the target on the map
         self.has_reached_target_last_update = False
         self.target_counter = 0         # we want to collect the number of targets collected. 
-
+        
         # 5 actions: Nothing, Up, Down, Right, Left .New
         self.action_space = gym.spaces.Discrete(5)
-
-  
+        
         # 6 observations: angle_to_up, velocity, angle_velocity, distance_to_target, angle_to_target, angle_target_and_velocity
         self.observation_space = spaces.Box(low=-np.inf, high=np.inf, shape=(6,))
         # self.observation_space = gym.spaces.Box(low=-np.inf, high=np.inf, shape=(6,), dtype=np.float32)
@@ -82,8 +82,7 @@ class Drone():
     def get_next_target(self) -> Tuple[float, float]:
         #return (0,0) if len(self.target_coordinates)==0 else self.target_coordinates[0]
 
-        self.target_coordinates = (uniform(4.8, 7.2),uniform(4.8, 7.2))
-         
+        self.add_target_coordinate((uniform(-0.4, 0.5), uniform(-0.4, 0.5)))       
         return self.target_coordinates
 
 
