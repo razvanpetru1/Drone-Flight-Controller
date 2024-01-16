@@ -1,11 +1,12 @@
 import pygame
-
 from drone import Drone
 from pygame import Rect
-import numpy as np
+
 import math
 from typing import Tuple
 from flight_controller import FlightController
+from DQN_agent import DQNController
+
 
 
 #---------------------WRITE YOUR OWN CODE HERE------------------------#
@@ -84,6 +85,7 @@ def main(controller: FlightController):
         # Draw the current drone on the screen
         draw_drone(screen, drone, drone_img)
         # Draw the next target on the screen
+        print(drone.get_next_target())
         draw_target(drone.get_next_target(), screen, target_img)
 
         # Actually displays the final frame on the screen
@@ -98,7 +100,57 @@ def main(controller: FlightController):
             drone = controller.init_drone() # Reset the drone
             simulation_step_counter = 0
 
+def main2():
+
+    # Initialise pygame
+    pygame.init()
+    clock = pygame.time.Clock()
+
+    # Load the relevant graphics into pygame
+    drone_img = pygame.image.load('graphics/drone_small.png')
+    background_img = pygame.image.load('graphics/background.png')
+    target_img = pygame.image.load('graphics/target.png')
+
+    # Create the screen
+    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     
+    # Initalise the drone
+   
+    dqn_controller = DQNController()
+    
+    # Define a callback function to update the Pygame display
+    def update_display(drone_position, target_position, drone_pitch):
+        # Refresh the background
+        screen.blit(background_img, (0, 0))
+        # Draw the current drone on the screen
+        draw_drone_DQN(screen, *drone_position, drone_pitch, drone_img)
+        # Draw the next target on the screen
+        draw_target(target_position, screen, target_img)
+        # Actually display the final frame on the screen
+        pygame.display.flip()
+
+    running = True
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+
+
+        # --- Begin Physics --- #
+
+        # Pass the update_display function as a callback to play_DQN
+        dqn_controller.play_DQN(callback=update_display)
+
+ 
+        # Makes sure that the simulation runs at a target 60FPS
+        clock.tick(60)
+
+        # Checks whether to reset the current drone
+       # simulation_step_counter+=1
+       # if (simulation_step_counter>max_simulation_steps):
+        #    drone = controller.init_drone() # Reset the drone
+         #   simulation_step_counter = 0
+         #     
 
 def draw_target(target_point, screen, target_img):
     target_size = convert_to_screen_size(0.1)
@@ -116,14 +168,28 @@ def draw_drone(screen: pygame.Surface, drone: Drone, drone_img: pygame.Surface):
     drone_scaled_rect = rotated_drone_img.get_rect(center=drone_scaled_center)
     screen.blit(rotated_drone_img, drone_scaled_rect)
 
-if __name__ == "__main__":
+def draw_drone_DQN(screen: pygame.Surface, x, y, drone_pitch, drone_img: pygame.Surface):
+    drone_x, drone_y = convert_to_screen_coordinate(x, y)
+    drone_width = convert_to_screen_size(0.3)
+    drone_height = convert_to_screen_size(0.15)
+    drone_rect = Rect(drone_x-drone_width/2, drone_y-drone_height/2, drone_width, drone_height)
+    drone_scaled_img = pygame.transform.scale(drone_img, (int(drone_width), int(drone_height)))
+    drone_scaled_center = drone_scaled_img.get_rect(topleft = (drone_x-drone_width/2, drone_y-drone_height/2)).center
+    rotated_drone_img = pygame.transform.rotate(drone_scaled_img, -drone_pitch * 180 / math.pi)
+    drone_scaled_rect = rotated_drone_img.get_rect(center=drone_scaled_center)
+    screen.blit(rotated_drone_img, drone_scaled_rect)
 
-    controller = generate_controller()
-    if is_training():
-        controller.train()
-        if is_saving():
-            controller.save()        
+if __name__ == "__main__":
+    my_test = True
+    if my_test:
+        main2()
     else:
-        controller.load()
-    
-    main(controller)
+        controller = generate_controller()
+        if is_training():
+            controller.train()
+            if is_saving():
+                controller.save()        
+        else:
+            controller.load()
+        
+        main(controller)

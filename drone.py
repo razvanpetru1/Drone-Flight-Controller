@@ -2,8 +2,8 @@ import numpy as np
 import gym
 from typing import Tuple
 from gym import spaces
-from math import sin,cos, pi, sqrt
-from random import randrange
+from random import uniform
+from math import pi
 
 class Drone():
 
@@ -26,12 +26,12 @@ class Drone():
         self.thrust_left = 0.5
         self.thrust_right = 0.5 
         
-        self.thruster_amplitude = 0.05
-        self.diff_amplitude = 0.006              
+        self.thruster_amplitude = 0.001
+        self.diff_amplitude = 0.00006              
         # The target x,y coordinates the drone is trying to reach
         self.target_coordinates = []           
 
-        self.target_coordinates = np.random.randint(480, 721, size=(2,))
+       # self.target_coordinates = np.random.randint(480, 721, size=(2,))
         
         # Physics constants
         self.velocity_drag = 1.0
@@ -81,8 +81,9 @@ class Drone():
     
     def get_next_target(self) -> Tuple[float, float]:
         #return (0,0) if len(self.target_coordinates)==0 else self.target_coordinates[0]
-        self.target_coordinates[0] = randrange(480, 720)
-        self.target_coordinates[1] = randrange(480, 720)
+
+        self.target_coordinates = (uniform(4.8, 7.2),uniform(4.8, 7.2))
+         
         return self.target_coordinates
 
 

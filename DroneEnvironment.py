@@ -19,7 +19,7 @@ class DroneEnvironment():
 
         # Initialize the drone
         self.drone = Drone()  # Assuming Drone class is defined somewhere
-
+        self.drone.target_coordinates = self.drone.get_next_target()
         
         # Set initial state
         self.state = self.get_state()  # Replace '?' with a proper method call
@@ -41,8 +41,8 @@ class DroneEnvironment():
         self.drone.pitch_velocity = 0   # new theta velocity
 
         # Reset the possition variable
-        self.drone.x = 200                # new x possition
-        self.drone.y = 200                # new y possition
+        self.drone.x = 0                # new x possition
+        self.drone.y = 0                # new y possition
         self.drone.pitch = 0            # new  theta angle
 
         self.drone.target_coordinates = self.drone.get_next_target()
@@ -159,7 +159,7 @@ class DroneEnvironment():
             done = True
             
         # If the drone exceeds a certain distance from the target, it results in a crash - reward a big penalty
-        elif distance_to_target > 1000:
+        elif distance_to_target > 8:
             self.drone.reward -= 1000
             done = True
             
@@ -215,3 +215,9 @@ class DroneEnvironment():
                          distance_to_target, 
                          angle_to_target, 
                          angle_target_and_velocity])
+
+    def get_current_possition_drone(self):
+         return (self.drone.x),(self.drone.y)
+
+    def get_target_coordonates(self):
+        return (self.drone.target_coordinates[0]),(self.drone.target_coordinates[0])
