@@ -1,9 +1,9 @@
 import numpy as np
+import gym
 from typing import Tuple
-import gymnasium as gym
 from gym import spaces
 from math import sin,cos, pi, sqrt
-
+from random import randrange
 
 class Drone():
 
@@ -30,6 +30,8 @@ class Drone():
         # The target x,y coordinates the drone is trying to reach
         self.target_coordinates = []           
 
+        self.target_coordinates = np.random.randint(480, 721, size=(2,))
+        
         # Physics constants
         self.velocity_drag = 1.0
         self.pitch_drag_constant = 0.3
@@ -38,6 +40,7 @@ class Drone():
         self.mass = 1.0
         self.g = -1.0/self.mass         # gravity
         self.game_target_size = 0.1     # size of the target on the map
+        self.length_arm_drone = 1      # we try length of 1
         
         self.t = 0                      # the time of the simulation (reseted at the start of every new episod)
         self.FPS = 60
@@ -47,15 +50,15 @@ class Drone():
 
         # 5 actions: Nothing, Up, Down, Right, Left .New
         self.action_space = gym.spaces.Discrete(5)
-        print("\n",type(self.action_space.dtype))
 
+  
         # 6 observations: angle_to_up, velocity, angle_velocity, distance_to_target, angle_to_target, angle_target_and_velocity
         self.observation_space = spaces.Box(low=-np.inf, high=np.inf, shape=(6,))
         # self.observation_space = gym.spaces.Box(low=-np.inf, high=np.inf, shape=(6,), dtype=np.float32)
         #print("\n",type(self.observation_space))
         
         self.reward = 0                 
-
+        
     def add_target_coordinate(self, point: Tuple[float, float]):
         self.target_coordinates.append(point)
 
@@ -76,7 +79,10 @@ class Drone():
 
     
     def get_next_target(self) -> Tuple[float, float]:
-        return (0,0) if len(self.target_coordinates)==0 else self.target_coordinates[0]
+        #return (0,0) if len(self.target_coordinates)==0 else self.target_coordinates[0]
+        self.target_coordinates[0] = randrange(480, 720)
+        self.target_coordinates[1] = randrange(480, 720)
+        return self.target_coordinates
 
 
     def step_simulation(self, delta_time: float):
