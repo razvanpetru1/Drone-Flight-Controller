@@ -18,15 +18,16 @@ class Drone():
         self.velocity_x = 0
         self.pitch_velocity = 0
 
-        self.acceleration_y = 0
         self.acceleration_x = 0
+        self.acceleration_y = 0
         self.pitch_acceleration = 0
 
         # Command for the motors if thrust_left & _right is 0.5 the drone is standing still.
         self.thrust_left = 0.5
         self.thrust_right = 0.5 
-        self.thruster_amplitude = 0.04
-        self.diff_amplitude = 0.0006              
+        
+        self.thruster_amplitude = 0.05
+        self.diff_amplitude = 0.006              
         # The target x,y coordinates the drone is trying to reach
         self.target_coordinates = []           
 
@@ -41,9 +42,9 @@ class Drone():
         self.g = -1.0/self.mass         # gravity
         self.game_target_size = 0.1     # size of the target on the map
         self.length_arm_drone = 1      # we try length of 1
-        
+              
         self.t = 0                      # the time of the simulation (reseted at the start of every new episod)
-        self.FPS = 60
+        self.FPS = 60                   # frames per second
 
         self.has_reached_target_last_update = False
         self.target_counter = 0         # we want to collect the number of targets collected. 
@@ -64,7 +65,7 @@ class Drone():
 
     
     def get_pitch_rad(self):
-        return  self.pitch / 180 * pi  
+        return  self.pitch * pi / 180 
     
     def get_pitch(self):
         return self.pitch
