@@ -3,6 +3,7 @@ import copy
 from DroneEnvironment import DroneEnvironment
 from CustomNeuralNetwork import CustomNeuralNetwork
 from ReplayMemory import ReplayMemory
+import matplotlib.pyplot as plt
 
 # for env test: 
 #from CustomEnvironment import CustomEnvironment
@@ -39,7 +40,7 @@ def generate_dataset(num_samples=100000, input_size=5, random_seed=True):
 #custom_env = DroneEnvironment(controller=custom_controller)
 
 class DQNController:
-    def __init__(self,architecture,activation_functions,learning_rate=0.001,epsilon=0.1,epsilon_decay=0.995,epsilon_min=0.01,gamma=0.95,maxlen=1000):
+    def __init__(self,architecture,activation_functions,learning_rate=0.001,epsilon=0.1,steps_total=1000000,epsilon_min=0.01,gamma=0.95,maxlen=1000):
        
         self.current_DronePoss_x = None
         self.current_DronePoss_y = None
@@ -55,8 +56,9 @@ class DQNController:
         self.RepMem = ReplayMemory(maxlen)
 
   
+        self.epsilon_init = epsilon
         self.epsilon = epsilon
-        self.epsilon_decay = epsilon_decay
+        self.total_steps = steps_total
         self.epsilon_min = epsilon_min
         self.gamma = gamma
 
@@ -69,8 +71,8 @@ class DQNController:
     def update_target_network(self):
         self.q_target_network.layers = copy.deepcopy(self.q_network.layers)
     
-    def decay_epsilon(self):
-        self.epsilon = max(self.epsilon_min,self.epsilon*self.epsilon_decay)
+    def decay_epsilon(self,step):
+        self.epsilon = max(self.epsilon_min,  (self.epsilon_init + ( self.epsilon_min - self.epsilon_init) * step / self.total_steps) )
 
     def e_greedy(self,state,custom_env): # epsilon gready approach
         randomAction = False
@@ -126,7 +128,15 @@ class DQNController:
 
 
 
-   
+def plot_data(steps,epsilon_values):
+     # Plot the linear interpolation
+    plt.plot(steps, epsilon_values, label='Linear Interpolation')
+    plt.xlabel('Steps')
+    plt.ylabel('Epsilon Value')
+    plt.title('Linear Interpolation: 0.9 to 0.1 over 10,000 Steps')
+    plt.axhline(y=0.1, color='r', linestyle='--', label='Target Value (0.1)')
+    plt.legend()
+    plt.show()
 
 
 def main_callback(callback=None ):
@@ -135,14 +145,20 @@ def main_callback(callback=None ):
         steps=0
         save_model_interval = 2
 
+        episode_data = np.zeros(num_episodes)
+        loss_data = np.zeros(num_episodes)
+        epsilon_data = np.zeros(num_episodes)
+        steps_data = np.zeros(num_episodes)
+
         for i in range(1,num_episodes+1):
             try:
+
                 episode_reward = 0
                 episode_loss = 0
                 t = 0
 
                 # Sample Phase
-                agent.decay_epsilon()
+                agent.decay_epsilon(steps)
                 nxt_state = env.reset() # we erase traces from the previous episode's simulation
                 done = False
                 while not done:
@@ -162,18 +178,35 @@ def main_callback(callback=None ):
                     steps +=1
                     t+=1
 
-                    if steps % C == 0: agent.update_target_network()               
+                    if steps % C == 0: agent.update_target_network()    
+                
+                episode_data[i-1] = i
+                loss_data[i-1] = episode_loss  
+                epsilon_data[i-1] = agent.epsilon
+                steps_data[i-1] = steps
+
                 #print(f"Episode: {i} Reward: {episode_reward} Loss: {episode_loss/t}, epsilon: {agent.epsilon}, time: {time}, distance: {distance}, Steps: {steps}")
                 print(f"Episode: {i} Reward: {episode_reward} Loss: {episode_loss/t}, epsilon: {agent.epsilon}, time: {time}, Steps: {steps}")
             except KeyboardInterrupt:
                 print(f"Training Terminated at Episode {i}")
-                # Save the trained model (placeholder, customize as needed)
+                # Save data to a CSV file
+                data_to_save = np.column_stack((episode_data, loss_data, epsilon_data, steps_data))
+                np.savetxt('episode_data.csv', data_to_save, delimiter=',', header='Episode, Loss, Epsilon, Steps', comments='')
+
+                # Save the trained model 
                 if num_episodes % save_model_interval == 0:
                     agent.q_network.save_model(f"model_episode_{num_episodes}.h5")
                 return 
+
         # Save the trained model (placeholder, customize as needed)
         if num_episodes % save_model_interval == 0:
             agent.q_network.save_model(f"model_episode_{num_episodes}.h5")
+
+        # Save data to a CSV file
+        data_to_save = np.column_stack((episode_data, loss_data, epsilon_data, steps_data))
+        np.savetxt('episode_data.csv', data_to_save, delimiter=',', header='Episode, Loss, Epsilon, Steps', comments='')
+
+       # plot_data(steps_data,epsilon_data)
 
     #Steps:
     # Create the env.
@@ -183,7 +216,7 @@ def main_callback(callback=None ):
     af = ["sigmoid","relu","linear"]
     agent = DQNController(arch,af,epsilon=0.9, learning_rate=0.0005)
     # Train the agent.
-    train(agent,custom_env,num_episodes = 1000000, batch_size=50)
+    train(agent,custom_env,num_episodes = 3, batch_size=50)
 
 
     # end
@@ -191,6 +224,7 @@ def main_callback(callback=None ):
 if __name__ == "__main__":
     
     main_callback()
+    
 
 
            
