@@ -40,7 +40,7 @@ def generate_dataset(num_samples=100000, input_size=5, random_seed=True):
 #custom_env = DroneEnvironment(controller=custom_controller)
 
 class DQNController:
-    def __init__(self,architecture,activation_functions,learning_rate=0.001,epsilon=0.1,steps_total=1000000,epsilon_min=0.01,gamma=0.95,maxlen=1000):
+    def __init__(self,architecture,activation_functions,learning_rate=0.001,epsilon=0.1,steps_total=600000,epsilon_min=0.01,gamma=0.95,maxlen=1000):
        
         self.current_DronePoss_x = None
         self.current_DronePoss_y = None
@@ -216,7 +216,7 @@ def main_callback(callback=None ):
     af = ["sigmoid","relu","linear"]
     agent = DQNController(arch,af,epsilon=0.9, learning_rate=0.0005)
     # Train the agent.
-    train(agent,custom_env,num_episodes = 3, batch_size=50)
+    train(agent,custom_env,num_episodes = 30000, batch_size=50)
 
 
     # end

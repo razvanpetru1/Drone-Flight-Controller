@@ -5,7 +5,7 @@ from pygame import Rect
 import math
 from typing import Tuple
 from flight_controller import FlightController
-from version2_DQN_agent import main_callback
+from DQN_agent_v2 import main_callback
 from DQN_agent import DQNController
 
 
