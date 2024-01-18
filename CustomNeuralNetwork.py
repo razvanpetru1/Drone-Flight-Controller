@@ -163,7 +163,7 @@ class CustomNeuralNetwork:
             # Train the neural network using mini-batch gradient descent
         batch_size = len(X)
         mse_list = []
-        record = True
+        record = False
         mse = 0
         for episode in range(1, number_episodes + 1):
             if episode % error_calculation_interval == 0:

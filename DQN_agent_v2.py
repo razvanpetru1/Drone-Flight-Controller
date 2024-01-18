@@ -1,7 +1,5 @@
 ﻿import numpy as np
 import copy
-
-
 from DroneEnvironment import DroneEnvironment
 from CustomNeuralNetwork import CustomNeuralNetwork
 from ReplayMemory import ReplayMemory
@@ -49,8 +47,8 @@ class DQNController:
         self.current_targetPoss_y = None
         self.drone_pitch = None
 
-        self.q_network = CustomNeuralNetwork(architecture, activation_functions)
-        self.q_target_network = CustomNeuralNetwork(architecture, activation_functions)
+        self.q_network = CustomNeuralNetwork(architecture, activation_functions,momentum=0)
+        self.q_target_network = copy.deepcopy(self.q_network)   # we copyy the parameters for q network - online network to the target network.
         
         self.action_size = architecture[-1]
 
@@ -66,20 +64,24 @@ class DQNController:
 
         self.architecture = architecture
         self.activation_functions = activation_functions
+        
 
     def update_target_network(self):
         self.q_target_network.layers = copy.deepcopy(self.q_network.layers)
     
     def decay_epsilon(self):
-        self.epsilon = min(self.epsilon_min,self.epsilon*self.epsilon_decay)
+        self.epsilon = max(self.epsilon_min,self.epsilon*self.epsilon_decay)
 
-    def e_greedy(self,state,custom_env):
-        if np.random.rand() < self.epsilon: 
-            return np.random.randint(custom_env.action_size)
-    
-       # q_values = self.q_network(np.array([state]))            # TODO, check here
+    def e_greedy(self,state,custom_env): # epsilon gready approach
+        randomAction = False
+        randomaVal = np.random.uniform(0, 1)
+        if  randomaVal < self.epsilon: 
+            randomAction = True
+            return (np.random.randint(custom_env.action_size),randomAction) 
+
+        randomAction = False
         q_values = self.q_network.predict_single(state)
-        return np.argmax(q_values)
+        return (np.argmax(q_values),randomAction)
 
     def learn(self,data,batch_size):
 
@@ -87,12 +89,13 @@ class DQNController:
 
         if len(self.RepMem) < batch_size: return 0
                 
-        # Sample a batch from the replay buffer
-        minibatch = self.RepMem.get_batch(batch_size)
+        # Sample a batch from the replay buffer. We form a new batch optained by randomnly sampling is used for nn training.
+        minibatch = self.RepMem.get_batch(batch_size)   # this data should be less correlated 
         state_batch, action_batch, reward_batch, next_state_batch, done_batch = minibatch
         
 
-        # Q-values for the current state (s)
+        # Q-values for the current state (s)   We constantly update this network. The autput is action-value fct - q values
+        # After training this network is used to form the gready pollicy 
         q_values = self.q_network.predict(state_batch)
         
        # action_mask = np.eye(self.action_size)[np.arange(len(q_values)), np.argmax(q_values, axis=1)]  # One-hot encoding. The first array represents the row indices, and the second array represents the column indices. This way, you can achieve one-hot encoding without converting the Q-values to integers.
@@ -127,18 +130,11 @@ class DQNController:
 
 
 def main_callback(callback=None ):
-    def play(agent,environment):
-        state,_ = environment.reset()
-        done = False
-        rewards = 0
-        
-        while not done:
-            pass
-        #todo:
-
-    def train(agent,env,num_episodes=100,batch_size=32,C=100):
+    
+    def train(agent,env,num_episodes=100,batch_size=32, C = 500):
         steps=0
         save_model_interval = 2
+
         for i in range(1,num_episodes+1):
             try:
                 episode_reward = 0
@@ -147,18 +143,18 @@ def main_callback(callback=None ):
 
                 # Sample Phase
                 agent.decay_epsilon()
-                nxt_state = env.reset()
+                nxt_state = env.reset() # we erase traces from the previous episode's simulation
                 done = False
                 while not done:
                     state = nxt_state
-                    action = agent.e_greedy(state,env)
-                    nxt_state,reward,done,info = env.step(action)
+                    action, randomAction = agent.e_greedy(state,env) # epsilon gready approach
+                    nxt_state,reward,done,info = env.step(action) # we select action
                     time, (agent.current_DronePoss_x, agent.current_DronePoss_y), agent.drone_pitch, (agent.current_targetPoss_x, agent.current_targetPoss_y) = info
-                
+                  #  print("Random action: ",randomAction)
                     if callback:
                         callback((agent.current_DronePoss_x, agent.current_DronePoss_y), agent.drone_pitch, (agent.current_targetPoss_x, agent.current_targetPoss_y))
 
-                    distance = custom_env.calculate_distance_to_target()
+                   # distance = custom_env.calculate_distance_to_target()
                     episode_reward += reward
                 
                     # Learning Phase
@@ -167,7 +163,8 @@ def main_callback(callback=None ):
                     t+=1
 
                     if steps % C == 0: agent.update_target_network()               
-                print(f"Episode: {i} Reward: {episode_reward} Loss: {episode_loss/t}, epsilon: {agent.epsilon}, time: {time}, distance: {distance}, Steps: {steps}")
+                #print(f"Episode: {i} Reward: {episode_reward} Loss: {episode_loss/t}, epsilon: {agent.epsilon}, time: {time}, distance: {distance}, Steps: {steps}")
+                print(f"Episode: {i} Reward: {episode_reward} Loss: {episode_loss/t}, epsilon: {agent.epsilon}, time: {time}, Steps: {steps}")
             except KeyboardInterrupt:
                 print(f"Training Terminated at Episode {i}")
                 # Save the trained model (placeholder, customize as needed)
@@ -178,12 +175,18 @@ def main_callback(callback=None ):
         if num_episodes % save_model_interval == 0:
             agent.q_network.save_model(f"model_episode_{num_episodes}.h5")
 
-
+    #Steps:
+    # Create the env.
     custom_env = DroneEnvironment()
-    arch = [6,6,5,5] # 6->6(sig)->5(relu)->5(lin)
+    # Create the agent, 2 nn a network and target network.
+    arch = [6,6,6,5] # 6->6(sig)->5(relu)->5(lin)
     af = ["sigmoid","relu","linear"]
-    agent = DQNController(arch,af,learning_rate=0.0005)
-    train(agent,custom_env,num_episodes = 10000, batch_size=100)
+    agent = DQNController(arch,af,epsilon=0.9, learning_rate=0.0005)
+    # Train the agent.
+    train(agent,custom_env,num_episodes = 1000000, batch_size=50)
+
+
+    # end
 
 if __name__ == "__main__":
     

@@ -26,8 +26,8 @@ class Drone():
         self.thrust_left = 0.5
         self.thrust_right = 0.5 
         
-        self.thruster_amplitude = 0.000005
-        self.diff_amplitude = 0.000006              
+        self.thruster_amplitude = 0.00001
+        self.diff_amplitude = 0.00001              
         # The target x,y coordinates the drone is trying to reach
           
         
