@@ -163,7 +163,7 @@ class DroneEnvironment():
             done = True
             
         # If the drone exceeds a certain distance from the target, it results in a crash - reward a big penalty
-        elif distance_to_target > 1:    
+        elif distance_to_target > 0.75:    
             self.drone.reward -= 1000
             done = True
             

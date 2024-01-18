@@ -5,7 +5,10 @@ from pygame import Rect
 import math
 from typing import Tuple
 from flight_controller import FlightController
+from version2_DQN_agent import main_callback
 from DQN_agent import DQNController
+
+
 
 
 
@@ -43,7 +46,7 @@ def convert_to_game_coordinates(x,y):
     scale = get_scale()
     return ((x - SCREEN_WIDTH/2)/scale, (y - SCREEN_HEIGHT/2)/scale)
 
-def main2():
+def main():
 
     # Initialise pygame
     pygame.init()
@@ -59,7 +62,7 @@ def main2():
     
     # Initalise the drone
    
-    dqn_controller = DQNController()
+    #dqn_controller = DQNController()
     
     # Define a callback function to update the Pygame display
     def update_display(drone_position, drone_pitch, target_position):
@@ -84,7 +87,8 @@ def main2():
         # --- Begin Physics --- #
 
         # Pass the update_display function as a callback to play_DQN
-        dqn_controller.play_DQN(callback=update_display)
+        #dqn_controller.play_DQN(callback=update_display)
+        main_callback(callback=update_display)
 
  
         # Makes sure that the simulation runs at a target 60FPS
@@ -125,4 +129,4 @@ def draw_drone_DQN(screen: pygame.Surface, x, y, drone_pitch, drone_img: pygame.
     screen.blit(rotated_drone_img, drone_scaled_rect)
 
 if __name__ == "__main__":
-    main2()
+    main()

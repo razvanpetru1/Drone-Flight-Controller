@@ -1,4 +1,4 @@
-import numpy as np
+﻿import numpy as np
 import copy
 
 
@@ -41,40 +41,44 @@ def generate_dataset(num_samples=100000, input_size=5, random_seed=True):
 #custom_env = DroneEnvironment(controller=custom_controller)
 
 class DQNController:
-    def __init__(self):
+    def __init__(self):    
         self.current_DronePoss_x = None
         self.current_DronePoss_y = None
         self.current_targetPoss_x = None
         self.current_targetPoss_y = None
         self.drone_pitch = None
 
+
     def play_DQN(self, callback=None):
 
-        custom_env = DroneEnvironment()
+        self.custom_env = DroneEnvironment()
 
-        q_network = CustomNeuralNetwork(architecture=[custom_env.observation_space.shape[0], 6, custom_env.action_space.n],
-                                        activation_functions=['relu', 'linear'],
-                                        learning_rate=0.01,
+        self.q_network = CustomNeuralNetwork(architecture=[self.custom_env.observation_space.shape[0], 6, 5, self.custom_env.action_space.n], # 6->6(sig)->5(relu)->5(lin)
+                                        activation_functions=["sigmoid","relu","linear"],
+                                        learning_rate=5e-3,
                                         momentum=0.9,
                                         seed=True)
-        q_target_network = CustomNeuralNetwork(architecture=[custom_env.observation_space.shape[0], 6, custom_env.action_space.n],
-                                               activation_functions=['relu', 'linear'],
-                                               learning_rate=0.01,
-                                               momentum=0.9,
-                                               seed=True)
+        self.q_target_network = CustomNeuralNetwork(architecture=[self.custom_env.observation_space.shape[0], 6, 5, self.custom_env.action_space.n], # 6->6(sig)->5(relu)->5(lin)
+                                        activation_functions=["sigmoid","relu","linear"],
+                                        learning_rate=5e-3,
+                                        momentum=0.9,
+                                        seed=True)
 
-        replay_memory = ReplayMemory(memlen=100)
+        replay_memory = ReplayMemory(memlen=10000)
 
         initial_epsilon = 0.1
         epsilon_min = 0.01
         epsilon_decay = 0.995
 
         gamma = 0.95
+
+        # TODO: maybe we need this: self.optimizer = tf.keras.optimizers.Adam(learning_rate=eta)
+
         batch_size = 32
         target_update_frequency = 100
 
         for episode in range(1000):
-            state = custom_env.reset()
+            state = self.custom_env.reset()
             done = False
             total_reward = 0
             steps = 0
@@ -84,13 +88,13 @@ class DQNController:
                 epsilon = max(initial_epsilon * epsilon_decay ** episode, epsilon_min)
 
                 if np.random.rand() < epsilon:
-                    action = np.random.randint(custom_env.action_size)
+                    action = np.random.randint(self.custom_env.action_size)
                 else:
-                    q_values = q_network.predict_single(state)
+                    q_values = self.q_network.predict_single(state)
                     action = np.argmax(q_values)
 
                 steps = steps + 1
-                next_state, reward, done, info = custom_env.step(action)
+                next_state, reward, done, info = self.custom_env.step(action)
                 time, (self.current_DronePoss_x, self.current_DronePoss_y), self.drone_pitch, (self.current_targetPoss_x, self.current_targetPoss_y) = info
                 
                  # Call the callback function on each iteration
@@ -99,7 +103,7 @@ class DQNController:
                 #print("Current position of the drone: ",self.current_DronePoss, "target: ",self.current_targetPoss)
 
                 total_reward += reward
-                distance = custom_env.calculate_distance_to_target()
+                distance = self.custom_env.calculate_distance_to_target()
 
                 replay_memory.append((state, action, reward, next_state, done))
 
@@ -114,17 +118,19 @@ class DQNController:
 
                 state_batch, action_batch, reward_batch, next_state_batch, done_batch = minibatch
 
+
                 for i in range(len(state_batch)):
+
                     s, a, r, ns, d = state_batch[i], action_batch[i], reward_batch[i], next_state_batch[i], done_batch[i]
+                    # Q(s,a)=r+(1−d)*γ*max _a′ ​ Q(ns,a′)  target target is the target Q-value that you want to update the Q-network towards.
+                    target = r + (1 - d) * gamma * np.max(self.q_target_network.predict_single(ns))
 
-                    target = r + (1 - d) * gamma * np.max(q_target_network.predict_single(ns))
-
-                    q_values = q_network.predict_single(s)
+                    q_values = self.q_network.predict_single(s)
                     q_values[a] = target
-                    q_network.train_on_batch(np.array([s]), np.array([q_values]))
+                    self.q_network.train_on_batch(np.array([s]), np.array([q_values]))
 
                 if episode % target_update_frequency == 0:
-                    q_target_network.layers = copy.deepcopy(q_network.layers)
+                   self.q_target_network.layers = copy.deepcopy(self.q_network.layers)
 
                 state = next_state
 

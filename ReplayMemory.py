@@ -14,17 +14,13 @@ class ReplayMemory:
         return len(self.memory)
 
     def get_batch(self, batch_size):
-        if len(self.memory) < batch_size:
-            # Return a smaller batch if the memory doesn't have enough samples
-            batch_size = len(self.memory)
 
         minibatch = random.sample(self.memory, batch_size)
 
         # Check if minibatch is not empty
         if not minibatch:
-            print("minibatch is empty!")
-            return np.array([]), np.array([]), np.array([]), np.array([]), np.array([])
-
+            print("minibatch is empty!**************")
+            
         state_batch = np.array([sample[0] for sample in minibatch])
         action_batch = np.array([sample[1] for sample in minibatch])
         reward_batch = np.array([sample[2] for sample in minibatch])
