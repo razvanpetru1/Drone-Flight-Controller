@@ -1,4 +1,15 @@
 import numpy as np
+import os
+import pickle
+
+class sigmoid:
+    def __init__(self,beta=1):
+        self.beta = beta
+    
+    def __call__(self,z,derivative=False):
+    
+        if derivative: return self.beta*z * (1 - z)
+        return 1 / (1 + np.exp(-z*self.beta))
 
 class ReLUActivation:
     def __call__(self, z, derivative=False):
@@ -15,6 +26,7 @@ class LinearActivation:
         return z
 
 AF_MAP = {
+    "sigmoid":sigmoid(1),
     "linear": LinearActivation(),
     "relu": ReLUActivation(),
 }
@@ -124,7 +136,9 @@ class CustomNeuralNetwork:
             if record:
                 mse_list.append(mse)
                 record = False
-        """
+            print(f"Episode: {episode} Loss: {mse/t}")
+        
+        
         # Save the trained model (placeholder, customize as needed)
         if episode % save_model_interval == 0:
             self.save_model(f"model_episode_{episode}.h5")
@@ -132,15 +146,17 @@ class CustomNeuralNetwork:
         # Monitor additional metrics (placeholder, customize as needed)
         if episode % metric_monitoring_interval == 0:
             print(f"episode: {episode}, Mean Squared Error: {mse}")
-        """
+        
         
         # Returns:    List of mean squared errors at specified intervals during training.
         return mse_list
 
-    def save_model(self, filename):
-            # Placeholder for saving the model
-        # Implement the actual saving mechanism (e.g., using pickle, h5py, etc.)
-        print(f"Saving model to {filename}")
+    def save_model(self, filename, directory="."):
+            # Save the trained model using pickle
+            filepath = os.path.join(directory, filename)
+            with open(filepath, 'wb') as file:
+                pickle.dump(self.layers, file)
+            print(f"Model saved to {filepath}")
         
 
     def train_on_batch(self, X, y, number_episodes=100, error_calculation_interval=10):
@@ -185,7 +201,7 @@ class CustomNeuralNetwork:
         return mse_list
 
     def predict_single(self, x):
-        return self.forward(x)[-1]  # he last element of this list
+        return self.forward(x)[-1]  # The last element of this list
 
     def predict(self, X):
         # For each input 'x' in the array 'X', calculate the output of the neural network
@@ -194,3 +210,33 @@ class CustomNeuralNetwork:
 
         # Convert the list of predictions into a NumPy array and return it.
         return np.array(predictions)
+
+
+    # test 
+
+if __name__ == "__main__":
+    from sklearn.datasets import load_breast_cancer
+    from sklearn.metrics import accuracy_score
+    import matplotlib.pyplot as plt 
+
+    bc = load_breast_cancer()
+    np.random.seed(69420)
+    from sklearn.model_selection import train_test_split
+    X_train,X_test,y_train,y_test = train_test_split(bc.data,bc.target,test_size=0.3,shuffle=True)
+    
+    s01 = sigmoid(0.01) # lower beta to avoid overflows in exp
+    model_bc = CustomNeuralNetwork([30,12,1],[s01,"linear","sigmoid"],seed=8,learning_rate=0.1,momentum=0.3)
+    
+   
+
+    y_pred = model_bc.predict(X_test)
+    y_pred = [np.round(y_) for y_ in y_pred]
+    mse_l = model_bc.train(X_train,y_train,number_episodes=100)
+    fig = plt.figure(figsize=(5,5))
+    plt.plot(range(len(mse_l)),mse_l)
+    plt.xlabel(f"Episodes:")
+    plt.ylabel("MSE")
+    plt.show()
+    y_pred = model_bc.predict(X_test)
+    y_pred = [np.round(y_) for y_ in y_pred]
+    print(f"Accuracy of the model: {accuracy_score(y_test,y_pred)}")
