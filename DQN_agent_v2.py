@@ -5,42 +5,10 @@ from CustomNeuralNetwork import CustomNeuralNetwork
 from ReplayMemory import ReplayMemory
 import matplotlib.pyplot as plt
 
-# for env test: 
-#from CustomEnvironment import CustomEnvironment
 
-
-# Custom code to test CustomNeuralNetwork implementation
-
-
-# Custom dataset generation for binary classification
-def generate_dataset(num_samples=100000, input_size=5, random_seed=True):
-    if random_seed:
-        np.random.seed(random_seed)
-
-    X = np.random.rand(num_samples, input_size)
-    y = np.random.randint(0, 2, size=num_samples)
-
-    return X, y
-
-
-# Test the Neural Network on the custom dataset
-# Create a CustomEnvironment
-#custom_env = CustomEnvironment(state_size=4, action_size=2)
-
-# Q-network architecture and activation functions
-# ReLU for the hidden layer. Introduces non-linearity to the model.
-# Linear for the output layer.
-#q_network = CustomNeuralNetwork(architecture=[custom_env.state_size, 8, custom_env.action_size], activation_functions=['relu', 'linear'], learning_rate=0.001, momentum=0.9, seed=42)
-
-
-# Q-target network (initialized with the same weights)
-#q_target_network = copy.deepcopy(q_network)
-
-#custom_controller = CustomController()
-#custom_env = DroneEnvironment(controller=custom_controller)
 
 class DQNController:
-    def __init__(self,architecture,activation_functions,learning_rate=0.001,epsilon=0.1,steps_total=600000,epsilon_min=0.01,gamma=0.95,maxlen=1000):
+    def __init__(self,architecture,activation_functions,learning_rate=0.001,epsilon=0.1,steps_total=600000,epsilon_decay = 0.999995,epsilon_min=0.01,gamma=0.95,maxlen=1000):
        
         self.current_DronePoss_x = None
         self.current_DronePoss_y = None
@@ -60,6 +28,8 @@ class DQNController:
         self.epsilon = epsilon
         self.total_steps = steps_total
         self.epsilon_min = epsilon_min
+        self.epsilon_decay = epsilon_decay
+
         self.gamma = gamma
 
         ## self.optimizer = tf.keras.optimizers.Adam(learning_rate=eta) TODO
@@ -72,7 +42,13 @@ class DQNController:
         self.q_target_network.layers = copy.deepcopy(self.q_network.layers)
     
     def decay_epsilon(self,step):
-        self.epsilon = max(self.epsilon_min,  (self.epsilon_init + ( self.epsilon_min - self.epsilon_init) * step / self.total_steps) )
+        Liniar = False
+        if Liniar:
+            # liniar decay
+            self.epsilon = max(self.epsilon_min,  (self.epsilon_init + ( self.epsilon_min - self.epsilon_init) * step / self.total_steps) )
+        else:
+            #exponantial decay
+            self.epsilon = max(self.epsilon_min,self.epsilon*self.epsilon_decay)
 
     def e_greedy(self,state,custom_env): # epsilon gready approach
         randomAction = False
@@ -216,7 +192,7 @@ def main_callback(callback=None ):
     af = ["sigmoid","relu","linear"]
     agent = DQNController(arch,af,epsilon=0.9, learning_rate=0.0005)
     # Train the agent.
-    train(agent,custom_env,num_episodes = 30000, batch_size=50)
+    train(agent,custom_env,num_episodes = 500000, batch_size=50)
 
 
     # end

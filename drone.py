@@ -100,7 +100,7 @@ class Drone():
         thrust_vec_y = np.cos(self.pitch) # for doc is z
         
         acc_x_h = (total_thrust * thrust_vec_x) / self.mass - self.velocity_drag * self.velocity_x              
-        acc_y_h = (total_thrust * thrust_vec_y) / self.mass + self.g - self.velocity_drag * self.velocity_y
+        acc_y_h = (total_thrust * thrust_vec_y) / self.mass + self.g - self.velocity_drag * self.velocity_y 
         theta_acc_h = (total_torque) / self.mass - self.pitch_drag_constant * np.abs(self.pitch_velocity)
         
 
