@@ -42,6 +42,14 @@ for i in range(max_time):
     # TODO: Add in any code for calculating a reward
 ```
 
+### Optional Scripts
+- plot_csv.py: Script uses for ploting csv file. `python3  python_csv.py`  
+- plot_data.py: Script uses for plot data `python3 plot_data.py`  
+- test_env.py: Script uses for testing drone environment  `python3 test_env.py`  
+
+
+
+
 ## Bug Fixes
 
 1. 26/11/2020: A quick fix to the implementations of the drag dynamics on the drone.

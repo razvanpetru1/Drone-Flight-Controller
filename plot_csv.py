@@ -2,7 +2,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 # Read the CSV file
-file_path = 'episode_data_17.18.csv'
+file_path = 'results_episode/episode_data_17.18.csv' 
 df = pd.read_csv(file_path, sep=',')
 # Trim whitespaces from column names
 
@@ -17,7 +17,6 @@ else:
     epsilon = df['Epsilon']
     loss = df['Loss']
     steps = df['Steps']
-    #steps = df['Reward']
 
     plt.plot(steps, loss, label='Loss')
     plt.xlabel('Steps')

@@ -113,7 +113,8 @@ class CustomNeuralNetwork:
             self.prev_deltas[i] = self.learning_rate * deltas[i] + self.momentum * self.prev_deltas[i]
             W -= self.prev_dE_dWs[i]
             b -= self.prev_deltas[i]
-
+            
+    '''#TRAIN CODE FOR CHECKING IF CUSTOM NEURAL NETWORK
     def train(self, X, y, number_episodes=50, error_calculation_interval=10):
         # Train the neural network using batch gradient descent
         mse_list = []
@@ -150,7 +151,7 @@ class CustomNeuralNetwork:
         
         # Returns:    List of mean squared errors at specified intervals during training.
         return mse_list
-
+    '''
     def save_model(self, filename, directory="."):
             # Save the trained model using pickle
             filepath = os.path.join(directory, filename)
@@ -212,8 +213,8 @@ class CustomNeuralNetwork:
         return np.array(predictions)
 
 
-    # testing!
-
+   
+'''#TEST CODE FOR CHECKING IF CUSTOM NEURAL NETWORK
 if __name__ == "__main__":
     from sklearn.datasets import load_breast_cancer
     from sklearn.metrics import accuracy_score
@@ -240,3 +241,4 @@ if __name__ == "__main__":
     y_pred = model_bc.predict(X_test)
     y_pred = [np.round(y_) for y_ in y_pred]
     print(f"Accuracy of the model: {accuracy_score(y_test,y_pred)}")
+'''

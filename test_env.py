@@ -1,18 +1,6 @@
-"""
-2D Quadcopter AI by Alexandre Sajus
-
-More information at:
-https://github.com/AlexandreSajus/Quadcopter-AI
-
-This is a helpful way to test env_DQN
-"""
-
-from env_DQN import droneEnv
 from DroneEnvironment import DroneEnvironment
 
-
 env = DroneEnvironment()
-
 obs = env.reset()
 
 

@@ -5,8 +5,6 @@ from CustomNeuralNetwork import CustomNeuralNetwork
 from ReplayMemory import ReplayMemory
 import matplotlib.pyplot as plt
 
-
-
 class DQNController:
     def __init__(self,architecture,activation_functions,learning_rate=0.001,epsilon=0.1,steps_total=600000,epsilon_decay = 0.99995,epsilon_min=0.01,gamma=0.95,maxlen=1000):
        
@@ -17,7 +15,7 @@ class DQNController:
         self.drone_pitch = None
 
         self.q_network = CustomNeuralNetwork(architecture, activation_functions,momentum=0)
-        self.q_target_network = copy.deepcopy(self.q_network)   # we copyy the parameters for q network - online network to the target network.
+        self.q_target_network = copy.deepcopy(self.q_network)   #copy the parameters for q network - online network to the target network.
         
         self.action_size = architecture[-1]
 
@@ -65,39 +63,29 @@ class DQNController:
 
         if len(self.RepMem) < batch_size: return 0
                 
-        # Sample a batch from the replay buffer. We form a new batch optained by randomnly sampling is used for nn training.
-        minibatch = self.RepMem.get_batch(batch_size)   # this data should be less correlated 
+        # Sample a batch from the replay buffer.  Form a new batch optained by randomnly sampling is used for nn training.
+        minibatch = self.RepMem.get_batch(batch_size)   #This data should be less correlated 
         state_batch, action_batch, reward_batch, next_state_batch, done_batch = minibatch
         
 
-        # Q-values for the current state (s)   We constantly update this network. The autput is action-value fct - q values
+        # Q-values for the current state (s)   Constantly update this network. The autput is action-value fct - q values
         # After training this network is used to form the gready pollicy 
         q_values = self.q_network.predict(state_batch)
         
-       # action_mask = np.eye(self.action_size)[np.arange(len(q_values)), np.argmax(q_values, axis=1)]  # One-hot encoding. The first array represents the row indices, and the second array represents the column indices. This way, you can achieve one-hot encoding without converting the Q-values to integers.
-        #q_values = np.sum(q_values * action_mask, axis=1)
-
         # Q'-values for the next state
         nxt_q_vals = self.q_target_network.predict(next_state_batch)
         max_nxt_q_vals = np.max(nxt_q_vals, axis=1)
 
-
         # Calculate target Q-values using the Bellman equation
         target_q_vals = reward_batch + (1 - done_batch) * self.gamma * max_nxt_q_vals
-
 
         # Update Q-values based on the temporal difference error
         for i in range(len(state_batch)):
             target = target_q_vals[i]
             q_values[i, action_batch[i]] = target
 
-        # Train the Q-network using the updated Q-values
-        mse_list = self.q_network.train_on_batch(state_batch, q_values)
        # Train the Q-network using the updated Q-values
-        #loss = np.mean(self.q_network.train_on_batch(state_batch, q_values))
         loss    = np.mean(np.square(target - q_values))
-
-        #return np.mean(mse_list) 
         return loss
 
 
@@ -118,7 +106,6 @@ def main_callback(callback=None ):
     def train(agent,env,num_episodes=100,batch_size=32, C = 500):
         steps=0
         save_model_interval = 2
-
         episode_data = np.zeros(num_episodes)
         loss_data = np.zeros(num_episodes)
         epsilon_data = np.zeros(num_episodes)
@@ -127,25 +114,22 @@ def main_callback(callback=None ):
 
         for i in range(1,num_episodes+1):
             try:
-
                 episode_reward = 0
                 episode_loss = 0
                 t = 0
 
                 # Sample Phase
                 agent.decay_epsilon(steps)
-                nxt_state = env.reset() # we erase traces from the previous episode's simulation
+                nxt_state = env.reset() # Erase traces from the previous episode's simulation
                 done = False
                 while not done:
                     state = nxt_state
-                    action, randomAction = agent.e_greedy(state,env) # epsilon gready approach
-                    nxt_state,reward,done,info = env.step(action) # we select action
+                    action, randomAction = agent.e_greedy(state,env) # Epsilon gready approach
+                    nxt_state,reward,done,info = env.step(action) # Select action
                     time, (agent.current_DronePoss_x, agent.current_DronePoss_y), agent.drone_pitch, (agent.current_targetPoss_x, agent.current_targetPoss_y) = info
                   #  print("Random action: ",randomAction)
                     if callback:
                         callback((agent.current_DronePoss_x, agent.current_DronePoss_y), agent.drone_pitch, (agent.current_targetPoss_x, agent.current_targetPoss_y))
-
-                   # distance = custom_env.calculate_distance_to_target()
                     episode_reward += reward
                 
                     # Learning Phase
@@ -160,7 +144,6 @@ def main_callback(callback=None ):
                 epsilon_data[i-1] = agent.epsilon
                 steps_data[i-1] = steps
                 reward_data[i-1] = episode_reward
-
                 #print(f"Episode: {i} Reward: {episode_reward} Loss: {episode_loss/t}, epsilon: {agent.epsilon}, time: {time}, distance: {distance}, Steps: {steps}")
                 print(f"Episode: {i} Reward: {episode_reward} Loss: {episode_loss/t}, epsilon: {agent.epsilon}, time: {time}, Steps: {steps}")
             except KeyboardInterrupt:
@@ -182,8 +165,6 @@ def main_callback(callback=None ):
         data_to_save = np.episode_data_reward((episode_data, loss_data, epsilon_data, steps_data, reward_data))
         np.savetxt('episode_data_t1.csv', data_to_save, delimiter=',', header='Episode, Loss, Epsilon, Steps, episode_reward', comments='')
 
-       # plot_data(steps_data,epsilon_data)
-
     #Steps:
     # Create the env.
     custom_env = DroneEnvironment()
@@ -193,9 +174,6 @@ def main_callback(callback=None ):
     agent = DQNController(arch,af,epsilon=0.9, learning_rate=0.0005)
     # Train the agent.
     train(agent,custom_env,num_episodes = 500000, batch_size=50)
-
-
-    # end
 
 if __name__ == "__main__":
     

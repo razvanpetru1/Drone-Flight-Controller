@@ -19,7 +19,7 @@ class ReplayMemory:
 
         # Check if minibatch is not empty
         if not minibatch:
-            print("minibatch is empty!**************")
+            print("minibatch is empty!")
             
         state_batch = np.array([sample[0] for sample in minibatch])
         action_batch = np.array([sample[1] for sample in minibatch])
