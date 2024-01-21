@@ -55,7 +55,7 @@ class Drone():
         
         # 6 observations: angle_to_up, velocity, angle_velocity, distance_to_target, angle_to_target, angle_target_and_velocity
         self.observation_space = spaces.Box(low=-np.inf, high=np.inf, shape=(6,))
-        # self.observation_space = gym.spaces.Box(low=-np.inf, high=np.inf, shape=(6,), dtype=np.float32)
+       # self.observation_space = gym.spaces.Box(low=-np.inf, high=np.inf, shape=(6,), dtype=np.float32)
         #print("\n",type(self.observation_space))
         
         self.reward = 0                 

@@ -1,25 +1,15 @@
 import pygame
-from drone import Drone
 from pygame import Rect
-
 import math
 from typing import Tuple
-from flight_controller import FlightController
 from DQN_agent_v2 import main_callback
-from DQN_agent import DQNController
+from drone import Drone
 
 
 
 
 
 #---------------------WRITE YOUR OWN CODE HERE------------------------#
-from heuristic_controller import HeuristicController
-from custom_controller import CustomController
-
-def generate_controller() -> FlightController:  
-    # The -> FlightController part indicates that the function is expected to return an instance of the FlightController class or a subclass of it.
-    return HeuristicController() # <--- Replace this with your own written controller
-    # return CustomController()
 
 def is_training() -> bool:
     return False # <--- Replace this with True if you want to train, false otherwise

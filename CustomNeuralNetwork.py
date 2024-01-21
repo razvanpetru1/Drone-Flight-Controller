@@ -212,7 +212,7 @@ class CustomNeuralNetwork:
         return np.array(predictions)
 
 
-    # test 
+    # testing!
 
 if __name__ == "__main__":
     from sklearn.datasets import load_breast_cancer

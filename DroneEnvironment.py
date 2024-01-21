@@ -7,15 +7,18 @@ from math import sin, cos, pi, sqrt
 class DroneEnvironment():
     def __init__(self):
         #def __init__(self, controller):
+
         # Define action and observation spaces
         # 5 actions: Nothing, Up, Down, Right, Left .New
         self.action_size = 5   
         self.action_space = gym.spaces.Discrete(5)
+        
 
         # 6 observations: angle_to_up, velocity, angle_velocity, distance_to_target, angle_to_target, angle_target_and_velocity
         self.state_size = 6
         self.observation_space = spaces.Box(low=-np.inf, high=np.inf, shape=(6,))
-        # self.observation_space = gym.spaces.Box(low=-np.inf, high=np.inf, shape=(6,), dtype=np.float32)
+       
+
 
         # Initialize the drone
         self.drone = Drone()  # Assuming Drone class is defined somewhere
@@ -60,7 +63,7 @@ class DroneEnvironment():
         self.drone.action_space = int(action)
 
         # Act every 5 frames
-        for _ in range(5):
+        for _ in range(1):
         
             self.drone.t += 1 / self.drone.FPS
 
@@ -97,7 +100,7 @@ class DroneEnvironment():
                 thruster_right += self.drone.diff_amplitude
 
 
-            # Calculating accelerations with Newton's laws of motions
+            # Calculating accelerations with Newton's laws of motions and finite difference approximation (Euler’s method)
             
             # Step 1: we calculate the total thrust & torque 
             total_thrust = thruster_right + thruster_left
@@ -109,22 +112,22 @@ class DroneEnvironment():
             thrust_vec_y = np.cos(self.drone.get_pitch_rad()) # for doc is z
     
             self.drone.acceleration_x += (total_thrust * thrust_vec_x) / self.drone.mass 
-            self.drone.acceleration_y += (total_thrust * thrust_vec_y) / self.drone.mass 
+            self.drone.acceleration_y += (total_thrust * thrust_vec_y) / self.drone.mass ##- self.drone.g
             self.drone.pitch_acceleration += self.drone.length_arm_drone *  (total_torque) / self.drone.mass 
 
-            # Drive the speed and the possition of the drone using small aproximations: cos(theta) = 1, and sin(theta) = theta
+            # Drive the speed and the possition of the drone using small aproximations: cos(theta) = 1, and sin(theta) = pitch
 
             # new component is = as old component + accelaration * time : Euler method
 
             # Calculate velocity a y and theta
             self.drone.velocity_x += self.drone.acceleration_x                      # new x velocity
             self.drone.velocity_y += self.drone.acceleration_y                      # new y velocity
-            self.drone.pitch_velocity += self.drone.pitch_acceleration              # new theta velocity
+            self.drone.pitch_velocity += self.drone.pitch_acceleration              # new pitch velocity
 
             # Calculate possition a y and angle theta
             self.drone.x += self.drone.velocity_x                                   # new x possition
             self.drone.y += self.drone.velocity_y                                   # new y possition
-            self.drone.pitch += self.drone.pitch_velocity                           # new  theta angle
+            self.drone.pitch += self.drone.pitch_velocity                           # new  pitch angle
 
                 
             self.drone.reward, done = self.calculate_reward()

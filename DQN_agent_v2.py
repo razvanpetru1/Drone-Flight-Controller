@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 
 
 class DQNController:
-    def __init__(self,architecture,activation_functions,learning_rate=0.001,epsilon=0.1,steps_total=600000,epsilon_decay = 0.999995,epsilon_min=0.01,gamma=0.95,maxlen=1000):
+    def __init__(self,architecture,activation_functions,learning_rate=0.001,epsilon=0.1,steps_total=600000,epsilon_decay = 0.99995,epsilon_min=0.01,gamma=0.95,maxlen=1000):
        
         self.current_DronePoss_x = None
         self.current_DronePoss_y = None
@@ -31,8 +31,6 @@ class DQNController:
         self.epsilon_decay = epsilon_decay
 
         self.gamma = gamma
-
-        ## self.optimizer = tf.keras.optimizers.Adam(learning_rate=eta) TODO
 
         self.architecture = architecture
         self.activation_functions = activation_functions
@@ -125,6 +123,7 @@ def main_callback(callback=None ):
         loss_data = np.zeros(num_episodes)
         epsilon_data = np.zeros(num_episodes)
         steps_data = np.zeros(num_episodes)
+        reward_data = np.zeros(num_episodes)
 
         for i in range(1,num_episodes+1):
             try:
@@ -160,27 +159,28 @@ def main_callback(callback=None ):
                 loss_data[i-1] = episode_loss  
                 epsilon_data[i-1] = agent.epsilon
                 steps_data[i-1] = steps
+                reward_data[i-1] = episode_reward
 
                 #print(f"Episode: {i} Reward: {episode_reward} Loss: {episode_loss/t}, epsilon: {agent.epsilon}, time: {time}, distance: {distance}, Steps: {steps}")
                 print(f"Episode: {i} Reward: {episode_reward} Loss: {episode_loss/t}, epsilon: {agent.epsilon}, time: {time}, Steps: {steps}")
             except KeyboardInterrupt:
                 print(f"Training Terminated at Episode {i}")
                 # Save data to a CSV file
-                data_to_save = np.column_stack((episode_data, loss_data, epsilon_data, steps_data))
-                np.savetxt('episode_data.csv', data_to_save, delimiter=',', header='Episode, Loss, Epsilon, Steps', comments='')
+                data_to_save = np.column_stack((episode_data, loss_data, epsilon_data, steps_data, reward_data ))
+                np.savetxt('episode_data_reward.csv', data_to_save, delimiter=',', header='Episode, Loss, Epsilon, Steps , episode_reward', comments='')
 
                 # Save the trained model 
                 if num_episodes % save_model_interval == 0:
-                    agent.q_network.save_model(f"model_episode_{num_episodes}.h5")
+                    agent.q_network.save_model(f"episode_data_reward{num_episodes}.h5")
                 return 
 
         # Save the trained model (placeholder, customize as needed)
         if num_episodes % save_model_interval == 0:
-            agent.q_network.save_model(f"model_episode_{num_episodes}.h5")
+            agent.q_network.save_model(f"episode_data_reward{num_episodes}.h5")
 
         # Save data to a CSV file
-        data_to_save = np.column_stack((episode_data, loss_data, epsilon_data, steps_data))
-        np.savetxt('episode_data.csv', data_to_save, delimiter=',', header='Episode, Loss, Epsilon, Steps', comments='')
+        data_to_save = np.episode_data_reward((episode_data, loss_data, epsilon_data, steps_data, reward_data))
+        np.savetxt('episode_data_t1.csv', data_to_save, delimiter=',', header='Episode, Loss, Epsilon, Steps, episode_reward', comments='')
 
        # plot_data(steps_data,epsilon_data)
 
