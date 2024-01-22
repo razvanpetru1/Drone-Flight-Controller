@@ -7,7 +7,6 @@ class sigmoid:
         self.beta = beta
     
     def __call__(self,z,derivative=False):
-    
         if derivative: return self.beta*z * (1 - z)
         return 1 / (1 + np.exp(-z*self.beta))
 
@@ -152,6 +151,7 @@ class CustomNeuralNetwork:
         # Returns:    List of mean squared errors at specified intervals during training.
         return mse_list
     '''
+    
     def save_model(self, filename, directory="."):
             # Save the trained model using pickle
             filepath = os.path.join(directory, filename)
