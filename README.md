@@ -42,6 +42,21 @@ for i in range(max_time):
     # TODO: Add in any code for calculating a reward
 ```
 
+## CustomerController 
+
+We define CustomerController as `DQNController` in DQN_agent.py, and the Controller can be trained by running main.py.
+
+## Custom Neural Network
+
+We define Custom Neural Network in CustomNeuralNetwork.py, and you can test it with `python3 CustomNeuralNetwork.py` after getting rid of the annotation in that file.
+
+## Optional Scripts
+
+- plot_csv.py: Script uses for plotting csv file. `python3  python_csv.py`  
+- plot_data.py: Script uses for plotting data `python3 plot_data.py`  
+- test_env.py: Script uses for testing drone environment  `python3 test_env.py`  
+
+
 ## Bug Fixes
 
 1. 26/11/2020: A quick fix to the implementations of the drag dynamics on the drone.
